@@ -115,8 +115,7 @@ all: clean yacc lex compile shared
 	echo "== Build Complete =="
 
 install: all
-	mkdir -p /usr/local/bin/
-	cp build/dice /usr/local/bin/dice
+	mv build/dice $(DESTDIR)$(bindir)/dice
 
 yacc:
 	mkdir -p build

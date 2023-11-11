@@ -144,7 +144,6 @@ y.tab.*
 # Temp YACC Files
 test_dice.yacc
 *.yacc~
-
 # Other
 .vscode/
 tmp
@@ -189,3 +188,18 @@ test.t
 
 # GNOLL Outputs
 *.dice
+.ccls-cache
+.direnv
+.envrc
+
+### Emacs ###
+# -*- mode: gitignore; -*-
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+result
