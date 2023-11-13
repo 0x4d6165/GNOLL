@@ -3,6 +3,7 @@ INCDIRS=./src/grammar
 
 CC=cc
 
+
 ifeq ($(CC),g++)
    STANDARD= -std=c++11
 else ifeq ($(CC),clang++)
@@ -58,15 +59,13 @@ endif
 endif
 endif
 
-
-USE_SECURE_RANDOM=0
 ifeq ($(USE_SECURE_RANDOM), 1)
 #$(shell echo "Using Fast, but Cryptographically insecure random fn")
 ARC4RANDOM:=-lbsd `pkg-config --libs libbsd`
 else
 #$(shell echo abc) "Using Cryptographically Secure, but slow random fn")
-ARC4RANDOM:=
 endif
+
 
 USE_CLT=0
 
@@ -94,7 +93,7 @@ DEFS=-DUSE_SECURE_RANDOM=${USE_SECURE_RANDOM} -DJUST_YACC=${YACC_FALLBACK} -DUSE
 CFLAGS=$(foreach D,$(INCDIRS),-I$(D)) $(OPT) $(DEFS) 
 
 # add flags to build for shared library and add include paths
-SHAREDCFLAGS=-fPIC -c $(foreach D,$(INCDIRS),-I$(D)) $(ARC4RANDOM) $(DEFS) 
+SHAREDCFLAGS=-fPIC -c $(foreach D,$(INCDIRS),-I$(D)) $(ARC4RANDOM) $(DEFS)
 
 # generate list of c files and remove y.tab.c from src/grammar directory
 CFILES=$(foreach D,$(CODEDIRS),$(wildcard $(D)/*.c)) build/lex.yy.c build/y.tab.c
@@ -134,12 +133,12 @@ compile:
         # MacOS creates warnings for signs.
 	$(CC) $(CFLAGS) $(CFILES) $(ARC4RANDOM) \
            -Wno-error=implicit-function-declaration \
-           -Wno-sign-conversion -Wno-sign-compare -lm
+           -Wno-sign-conversion -Wno-sign-compare -lm -lcurl -ljson-c
 
 
 # Shared Lib
 shared: $(OBJECTS)
-	$(CC) -shared -o build/dice.so $^ $(ARC4RANDOM) -lm
+	$(CC) -shared -o build/dice.so $^ $(ARC4RANDOM) -lm -lcurl -ljson-c
 	cp build/dice.so build/libdice.so
 # Linux
 	mv ./a.out build/dice | true
@@ -148,15 +147,15 @@ shared: $(OBJECTS)
 
 # hardcode for lex and yacc files
 build/y.tab.o: 
-	$(CC) $(SHAREDCFLAGS) -c build/y.tab.c -o $@
+	$(CC) $(SHAREDCFLAGS) -lcurl -ljson-c -c build/y.tab.c -o $@
 build/lex.yy.o:
-	$(CC) $(SHAREDCFLAGS) -c build/lex.yy.c -o $@  
+	$(CC) $(SHAREDCFLAGS) -lcurl -ljson-c -c build/lex.yy.c -o $@  
 
 # Wildcard everything else
 build/*/%.o:src/grammar/*/%.c
-	$(CC) $(SHAREDCFLAGS) -c  $^ -o $@
+	$(CC) $(SHAREDCFLAGS) -lcurl -c  $^ -o $@
 build/%.o:src/grammar/%.c
-	$(CC) $(SHAREDCFLAGS) -c -o $@ $^
+	$(CC) $(SHAREDCFLAGS) -lcurl -c -o $@ $^
 
 test_no_pip : python
 	python3 -m pytest tests/python/ -xs
